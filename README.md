@@ -1,0 +1,1 @@
+# Design-and-implementation-of-a-parallel-geographically-weighted-k-nearest-neighbor-classifier
