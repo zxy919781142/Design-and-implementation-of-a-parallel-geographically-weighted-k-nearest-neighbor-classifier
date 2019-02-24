@@ -10,32 +10,28 @@
 #include "stdlib.h"
 #include "windows.h"
 using namespace std;
-float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)//¼ÆËãÁ½ÏñÔªµÄ¿Õ¼ä¾àÀë
+float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)//è®¡ç®—ä¸¤åƒå…ƒçš„ç©ºé—´è·ç¦»
 {
 	return(sqrt((Raster_x-Sample_x)*(Raster_x-Sample_x)+(Raster_y-Sample_y)*(Raster_y-Sample_y))*resulation);
 }
-float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)//¼ÆËãÁ½ÏñÔªµÄ¹âÆ×¾àÀë
+float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)//è®¡ç®—ä¸¤åƒå…ƒçš„å…‰è°±è·ç¦»
 {
 	return(fabs(RastScanline[Raster_N]-RastScanline[Sample_N]));
 }
 
-	/****************/
-	/*¼ÆËãX£¬Y×ø±ê*/
-	/****************/
+	
 void  Cmpute_XY(long Raster_N,long *Raster_X,long *Raster_Y,long X_size)
 {
 	*Raster_X =  Raster_N%X_size;
 	*Raster_Y =  Raster_N/X_size;
 }
-	/****************/
-	/*¸ù¾ÝÍ¼Ïñ×ø±ê¼ÆËã´æ´¢Î»ÖÃRaster_N*/
-	/****************/
+	
 long Compute_Raster_N(long Raster_X,long Raster_Y,long X_size)
 {
 	return(Raster_X+Raster_Y*X_size);
 }
 
-float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)//¼ÆËãÄ³¸ö´ý·ÖÀàÏñÔª¹éÊôÈ¨ÖØ
+float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)//è®¡ç®—æŸä¸ªå¾…åˆ†ç±»åƒå…ƒå½’å±žæƒé‡
 {
 	float Raster_Weight = 0,Raster_Dis_Weight = 0;
 	long Raster_x,Raster_y,Sample_x,Sample_y;
@@ -119,79 +115,38 @@ int main(int nArgc, char *papszArgv[])
 
 
 
-	/* poDataset = (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
-
-	const char *Driver_Name1 = poDataset->GetDriver()->GetDescription();//»ñÈ¡Ô´Êý¾Ýdriver name
-
-	OGRSpatialReference oSRS1;
-	if( poDataset->GetProjectionRef()  != NULL )//»ñÈ¡Í¶Ó°ÐÅÏ¢
-	{
-		oSRS1 = poDataset->GetProjectionRef();
-	}
-	 GDALDataset *poDstDS;
-	 char **papszOptions1 = NULL;
-	 char *pszSRS_WKT1 = NULL;
-	 const char *pszDstFilename = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\nanjing2002_test.tif";
-	 GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName(Driver_Name1);//»ñÈ¡Ô´Êý¾Ýdriver
-	 GDALRasterBand  *poBand = poDataset->GetRasterBand(1);		
-	 GDALDataType RasterDataType = poBand->GetRasterDataType();	 
-     poDstDS = poDriver->Create( pszDstFilename, 361, 321, 3, RasterDataType, 
-                                papszOptions1 );
-
-	 oSRS1.exportToWkt( &pszSRS_WKT1 );
-     poDstDS->SetProjection( pszSRS_WKT1 );
-     CPLFree( pszSRS_WKT1 );*/
-
-
-
-
-	 /****************/
-	/*´ò¿ªÕ¤¸ñÊý¾ÝÔ´*/
-	/****************/
 	
     poDataset = (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
     if( poDataset == NULL )
     {
         printf("open failed!\n");
     }
-	/*********************/
-	/*»ñÈ¡Õ¤¸ñÊý¾ÝÔ´ÐÅÏ¢*/
-	/********************/
+	
 	double        adfGeoTransform[6];
 
-	const char *Driver_Name = poDataset->GetDriver()->GetDescription();//»ñÈ¡Ô´Êý¾Ýdriver name
-	long RasterXsize =  poDataset->GetRasterXSize();//»ñÈ¡Í¼ÏñºáÏòÏñËØÊý
-	long RasterYsize =  poDataset->GetRasterYSize();//»ñÈ¡Í¼Ïñ×ÝÏòÏñËØÊý
-	long RasterCount =  poDataset->GetRasterCount();//»ñÈ¡Í¼Ïñ²ãÊý
+	const char *Driver_Name = poDataset->GetDriver()->GetDescription();
+	long RasterXsize =  poDataset->GetRasterXSize();
+	long RasterYsize =  poDataset->GetRasterYSize();
+	long RasterCount =  poDataset->GetRasterCount();
 
 	OGRSpatialReference oSRS;
-	if( poDataset->GetProjectionRef()  != NULL )//»ñÈ¡Í¶Ó°ÐÅÏ¢
+	if( poDataset->GetProjectionRef()  != NULL )
 	{
 		oSRS = poDataset->GetProjectionRef();
 	}
 	float Origin_x,Origin_y;
 
-	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )//»ñÈ¡Í¼ÏñÆðÊ¼µã£¨×óÉÏ½Çµã£©×ø±ê£¬¼°·Ö±æÂÊ
+	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )
     {
         
         Origin_x = adfGeoTransform[0];
 		Origin_y = adfGeoTransform[3] ;        
     }
-	/*
-	adfGeoTransform[0] ×óÉÏ½ÇX×ø±ê
-    adfGeoTransform[1] ¶«Î÷·½ÏòÏñÔª·Ö±æÂÊ
-    adfGeoTransform[2] Ðý×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕý±±·½Ïò
-    adfGeoTransform[3] ×óÉÏ½ÇY×ø±ê
-    adfGeoTransform[4] Ðý×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕý±±·½Ïò
-    adfGeoTransform[5] ÄÏ±±·½ÏòÏñÔª·Ö±æÂÊ
-	*/
-	/*********************/
-	/*´´½¨Ä¿±êÊý¾Ý*/
-	/********************/
+	
     int cp, np;
-	MPI_Init(&nArgc, &papszArgv);//²¢ÐÐ³õÊ¼»¯
-	MPI_Comm_rank(MPI_COMM_WORLD, &cp);//»ñÈ¡½ø³Ì±àºÅ
-	MPI_Comm_size(MPI_COMM_WORLD, &np);//»ñÈ¡½ø³ÌÊýÁ¿
+	MPI_Init(&nArgc, &papszArgv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &cp);
+	MPI_Comm_size(MPI_COMM_WORLD, &np);
 
 	float t1 = 0,t2=0,t3=0;
 	//float ts1=0,ts2 =0;
@@ -213,7 +168,7 @@ int main(int nArgc, char *papszArgv[])
 	 char **papszOptions = NULL;
 	 char *pszSRS_WKT = NULL;
 	 const char *pszDstFilename = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\nanjing2002_test.tif";
-	 GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName(Driver_Name);//»ñÈ¡Ô´Êý¾Ýdriver
+	 GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName(Driver_Name);//èŽ·å–æºæ•°æ®driver
 		
 	 GDALDataType RasterDataType = poBand->GetRasterDataType();	
      poDstDS = poDriver->Create( pszDstFilename, RasterXsize, RasterYsize, RasterCount, RasterDataType, 
@@ -226,24 +181,22 @@ int main(int nArgc, char *papszArgv[])
 	
 
 	 }
-	point_n[0] = fopen_txt_n(pszFilename1,raster_x[0],raster_y[0],Sample_N[0],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[1] = fopen_txt_n(pszFilename2,raster_x[1],raster_y[1],Sample_N[1],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[2] = fopen_txt_n(pszFilename3,raster_x[2],raster_y[2],Sample_N[2],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[3] = fopen_txt_n(pszFilename4,raster_x[3],raster_y[3],Sample_N[3],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[4] = fopen_txt_n(pszFilename5,raster_x[4],raster_y[4],Sample_N[4],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
+	point_n[0] = fopen_txt_n(pszFilename1,raster_x[0],raster_y[0],Sample_N[0],RasterXsize);
+	point_n[1] = fopen_txt_n(pszFilename2,raster_x[1],raster_y[1],Sample_N[1],RasterXsize);
+	point_n[2] = fopen_txt_n(pszFilename3,raster_x[2],raster_y[2],Sample_N[2],RasterXsize);
+	point_n[3] = fopen_txt_n(pszFilename4,raster_x[3],raster_y[3],Sample_N[3],RasterXsize);
+	point_n[4] = fopen_txt_n(pszFilename5,raster_x[4],raster_y[4],Sample_N[4],RasterXsize);
 	pafScanline = (float *) CPLMalloc(sizeof(float)*RasterXsize*RasterYsize);
 
 	
 	
-	/*********************/
-	/*¶ÁÔ´Êý¾Ý²¢Ð´ÈëÄ¿±êÊý¾Ý*/
-	/********************/
+	
 
 
     t1 = MPI_Wtime();
 
 
-		/*»ùÓÚÏñÔªµÄÍ¼Ïñ´¦Àí*/
+		
 		
 		long raster_pixles_n = RasterXsize*RasterYsize; 
 		int raster_n =0;
@@ -256,7 +209,7 @@ int main(int nArgc, char *papszArgv[])
 		poBand = poDataset->GetRasterBand(Bands);
 
 	
-		//ËùÓÐ½ø³Ì¶¼ÐèÒª¶Á
+		
         poBand->RasterIO( GF_Read, 0, 0, RasterXsize, RasterYsize, pafScanline, RasterXsize, RasterYsize, GDT_Float32,  0, 0 );
 	
 
@@ -298,9 +251,7 @@ int main(int nArgc, char *papszArgv[])
 				 
 					   pixles_weight[px_i]= Compute_Weight(raster_n,Sample_N[px_i],point_n[px_i], adfGeoTransform[1],RasterXsize,pafScanline);	
 				   MPI_Send(&pixles_weight[px_i],1,MPI_FLOAT,0,px_i,MPI_COMM_WORLD);
-			  	 // cout<<"Q2"<<" "<<"Band:"<<" "<<Bands<<" "<<px_i <<endl;
-
-			       //tag2=tag*(np-1);
+			  	
 				   Nxp = 5-p*(np-1);
 				            
 				       if(Nxp>=np-1){
@@ -347,18 +298,14 @@ int main(int nArgc, char *papszArgv[])
 				
 				
 				MPI_Recv(&pixles_weight[j],1,MPI_FLOAT,MPI_ANY_SOURCE,j,MPI_COMM_WORLD,&status);
-				//int a=int(pixles_weight[j]/10)-1;
-				//pw[a]=pixles_weight[j]-(a+1)*10;
 				
-			//	cout<<"receive:"<<" "<<raster_n<<" "<<a<<" "<<pw[a]<<endl;
 
 
 
 		}
 		   ts2=MPI_Wtime();		
 		   tsz=tsz+ts2-ts1;
-		 // cout<<raster_n<<"  "<<ts2-ts1<<"  "<<tsz<<endl;
-		 //  cout<<raster_n<<"end "<<ts2[raster_n]<<endl;
+		
 		}
 
 	
