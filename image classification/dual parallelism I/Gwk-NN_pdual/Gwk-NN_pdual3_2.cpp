@@ -1,4 +1,4 @@
-// Gwk-NN_pdual.cpp : ¶¨Òå¿ØÖÆÌ¨Ó¦ÓÃ³ÌÐòµÄÈë¿Úµã¡£
+// Gwk-NN_pdual.cpp : å®šä¹‰æŽ§åˆ¶å°åº”ç”¨ç¨‹åºçš„å…¥å£ç‚¹ã€‚
 #include "gdal_priv.h"
 #include "cpl_conv.h" // for CPLMalloc()
 #include "cpl_string.h"
@@ -9,32 +9,28 @@
 #include "mpi.h"
 #include "windows.h"
 using namespace std;
-float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)//¼ÆËãÁ½ÏñÔªµÄ¿Õ¼ä¾àÀë
+float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)
 {
 	return(sqrt((Raster_x-Sample_x)*(Raster_x-Sample_x)+(Raster_y-Sample_y)*(Raster_y-Sample_y))*resulation);
 }
-float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)//¼ÆËãÁ½ÏñÔªµÄ¹âÆ×¾àÀë
+float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)
 {
 	return(fabs(RastScanline[Raster_N]-RastScanline[Sample_N]));
 }
 
-	/****************/
-	/*¼ÆËãX£¬Y×ø±ê*/
-	/****************/
+	
 void  Cmpute_XY(long Raster_N,long *Raster_X,long *Raster_Y,long X_size)
 {
 	*Raster_X =  Raster_N%X_size;
 	*Raster_Y =  Raster_N/X_size;
 }
-	/****************/
-	/*¸ù¾ÝÍ¼Ïñ×ø±ê¼ÆËã´æ´¢Î»ÖÃRaster_N*/
-	/****************/
+	
 long Compute_Raster_N(long Raster_X,long Raster_Y,long X_size)
 {
 	return(Raster_X+Raster_Y*X_size);
 }
 
-float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)//¼ÆËãÄ³¸ö´ý·ÖÀàÏñÔª¹éÊôÈ¨ÖØ
+float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)
 {
 	float Raster_Weight = 0,Raster_Dis_Weight = 0;
 	long Raster_x,Raster_y,Sample_x,Sample_y;
@@ -118,9 +114,9 @@ int main(int nArgc, char *papszArgv[])
 	int point_n[5];
 
 	int cp, np;
-	MPI_Init(&nArgc, &papszArgv);//²¢ÐÐ³õÊ¼»¯
-	MPI_Comm_rank(MPI_COMM_WORLD, &cp);//»ñÈ¡½ø³Ì±àºÅ
-	MPI_Comm_size(MPI_COMM_WORLD, &np);//»ñÈ¡½ø³ÌÊýÁ¿
+	MPI_Init(&nArgc, &papszArgv);
+	MPI_Comm_rank(MPI_COMM_WORLD, &cp);
+	MPI_Comm_size(MPI_COMM_WORLD, &np);
 
 
 
@@ -133,75 +129,59 @@ int main(int nArgc, char *papszArgv[])
 	double ttsz=0;
 
 
-	//½ø³Ì·Ö×é ÒÔÈý¸öÎªÒ»×é½øÐÐ»®·Ö
+	
 	int pz,ys;
 	ys=np%4;
 	if(ys==0){
-	pz=int(np/4); //¼ÆËã½ø³Ì×é¸öÊý
+	pz=int(np/4);
 	}
 	else
 	{
 	pz=int(np/4)+1;
 	}
 
-	int zh;//½ø³Ì×é×éºÅ
-
-	 /****************/
-	/*´ò¿ªÕ¤¸ñÊý¾ÝÔ´*/
+	int zh;
+	
 	/****************/
     poDataset = (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
     if( poDataset == NULL )
     {
         printf("open failed!\n");
     }
-	/*********************/
-	/*»ñÈ¡Õ¤¸ñÊý¾ÝÔ´ÐÅÏ¢*/
-	/********************/
+	
 	double        adfGeoTransform[6];
 
-	const char *Driver_Name = poDataset->GetDriver()->GetDescription();//»ñÈ¡Ô´Êý¾Ýdriver name
-	long RasterXsize =  poDataset->GetRasterXSize();//»ñÈ¡Í¼ÏñºáÏòÏñËØÊý
-	long RasterYsize =  poDataset->GetRasterYSize();//»ñÈ¡Í¼Ïñ×ÝÏòÏñËØÊý
-	long RasterCount =  poDataset->GetRasterCount();//»ñÈ¡Í¼Ïñ²ãÊý
+	const char *Driver_Name = poDataset->GetDriver()->GetDescription();
+	long RasterXsize =  poDataset->GetRasterXSize();
+	long RasterYsize =  poDataset->GetRasterYSize();
+	long RasterCount =  poDataset->GetRasterCount();
 
 	OGRSpatialReference oSRS;
-	if( poDataset->GetProjectionRef()  != NULL )//»ñÈ¡Í¶Ó°ÐÅÏ¢
+	if( poDataset->GetProjectionRef()  != NULL )
 	{
 		oSRS = poDataset->GetProjectionRef();
 	}
 	float Origin_x,Origin_y;
 
-	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )//»ñÈ¡Í¼ÏñÆðÊ¼µã£¨×óÉÏ½Çµã£©×ø±ê£¬¼°·Ö±æÂÊ
+	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )
     {
         
         Origin_x = adfGeoTransform[0];
 		Origin_y = adfGeoTransform[3] ;        
     }
-	/*
-	adfGeoTransform[0] ×óÉÏ½ÇX×ø±ê
-    adfGeoTransform[1] ¶«Î÷·½ÏòÏñÔª·Ö±æÂÊ
-    adfGeoTransform[2] Ðý×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕý±±·½Ïò
-    adfGeoTransform[3] ×óÉÏ½ÇY×ø±ê
-    adfGeoTransform[4] Ðý×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕý±±·½Ïò
-    adfGeoTransform[5] ÄÏ±±·½ÏòÏñÔª·Ö±æÂÊ
-	*/
-	/*********************/
-	/*´´½¨Ä¿±êÊý¾Ý*/
-	/********************/
+	
 
 	 GDALDataset *poDstDS;
 	 char **papszOptions = NULL;
 	 char *pszSRS_WKT = NULL;
-	// GDALDriver *pDriver = GetGDALDriverManager()->GetDriverByName("GTiff"); //Í¼ÏñÇý¶¯
-   //  papszOptions = CSLSetNameValue(papszOptions, "BIGTIFF", "IF_NEEDED"); //ÅäÖÃÍ¼ÏñÐÅÏ¢
+	
 
 	 const char *pszDstFilename1 = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\test1.tif";
 	 const char *pszDstFilename2 = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\test2.tif";
 	 const char *pszDstFilename3 = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\test3.tif";
 	 const char *pszDstFilename4 = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\test4.tif";
 	 const char *pszDstFilename5 = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\test5.tif";
-	// GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName(Driver_Name);//»ñÈ¡Ô´Êý¾Ýdriver
-	 GDALDriver *poDriver = GetGDALDriverManager()->GetDriverByName("GTiff");//»ñÈ¡Ô´Êý¾Ýdriver
+	
 	 GDALRasterBand  *poBand = poDataset->GetRasterBand(1);	
 	 GDALRasterBand  *poDBand;
 	 GDALDataType RasterDataType = poBand->GetRasterDataType();	 
@@ -249,35 +229,16 @@ int main(int nArgc, char *papszArgv[])
 
 		}
 
-   //  poDstDS = poDriver->Create(pszDstFilename, RasterXsize, RasterYsize, RasterCount, RasterDataType,  papszOptions );
-                               
+  
 
-
-    /*int bare_point_n = fopen_txt_n(pszFilename1,raster_x[0],raster_y[0],Sample_N[0],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	int field_point_n = fopen_txt_n(pszFilename2,raster_x[1],raster_y[1],Sample_N[1],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	int grass_point_n = fopen_txt_n(pszFilename3,raster_x[2],raster_y[2],Sample_N[2],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	int road_point_n = fopen_txt_n(pszFilename4,raster_x[3],raster_y[3],Sample_N[3],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	int water_point_n = fopen_txt_n(pszFilename5,raster_x[4],raster_y[4],Sample_N[4],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý*/
-
-	point_n[0] = fopen_txt_n(pszFilename1,raster_x[0],raster_y[0],Sample_N[0],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[1] = fopen_txt_n(pszFilename2,raster_x[1],raster_y[1],Sample_N[1],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[2] = fopen_txt_n(pszFilename3,raster_x[2],raster_y[2],Sample_N[2],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[3] = fopen_txt_n(pszFilename4,raster_x[3],raster_y[3],Sample_N[3],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
-	point_n[4] = fopen_txt_n(pszFilename5,raster_x[4],raster_y[4],Sample_N[4],RasterXsize);//»ñÈ¡Ñù±¾Êý¾Ý×ø±êµã¼°Ñù±¾Êý¾Ý×ø±êµã¸öÊý
+	point_n[0] = fopen_txt_n(pszFilename1,raster_x[0],raster_y[0],Sample_N[0],RasterXsize);//èŽ·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
+	point_n[1] = fopen_txt_n(pszFilename2,raster_x[1],raster_y[1],Sample_N[1],RasterXsize);//èŽ·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
+	point_n[2] = fopen_txt_n(pszFilename3,raster_x[2],raster_y[2],Sample_N[2],RasterXsize);//èŽ·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
+	point_n[3] = fopen_txt_n(pszFilename4,raster_x[3],raster_y[3],Sample_N[3],RasterXsize);//èŽ·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
+	point_n[4] = fopen_txt_n(pszFilename5,raster_x[4],raster_y[4],Sample_N[4],RasterXsize);//èŽ·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
 	
 	
 
-	/*int bare_point_n = 60;
-	int field_point_n = 110;
-	int grass_point_n = 100;
-	int road_point_n = 20;
-	int water_point_n = 40;*/
-
-	
-
-	/*********************/
-	/*¶ÁÔ´Êý¾Ý²¢Ð´ÈëÄ¿±êÊý¾Ý*/
-	/********************/
 	int Bands = RasterCount;
 	zh=int(cp/4);
 	int lb;
@@ -304,16 +265,7 @@ int main(int nArgc, char *papszArgv[])
 		t1 = MPI_Wtime();
 
 
-//	for(; Bands>0; Bands--)
-//	{
-		
-			
-		//ËùÓÐ½ø³Ì¶¼ÐèÒª¶Á
-       // poBand->RasterIO( GF_Read, 0, 0, RasterXsize, RasterYsize, pafScanline, RasterXsize, RasterYsize, GDT_Float32,  0, 0 );
-	   
-
-		//ÅÐ¶Ï×éºÅ 
-	//***********************************************************************************************************************	
+	
 		if(np>4){
 
 				for(; Bands>1; Bands--)
@@ -366,36 +318,29 @@ int main(int nArgc, char *papszArgv[])
 			MPI_Status status;
 			
 			if (cp==0 ){
-				  //  cout<<raster_n<<endl;
-
+				
 
 				ts1=MPI_Wtime();    
 				for(int j=1;j<4;j++){
-
-                    //MPI_Recv(&pixles_weight[j-1],1,MPI_FLOAT,cp+j,j,MPI_COMM_WORLD,&status);
-					//int a=int(pixles_weight[j-1]/10)-1;
-				   // pw[a]=pixles_weight[j-1]-(a+1)*10;
+             
 					MPI_Recv(&pw[j],1,MPI_FLOAT,j,j,MPI_COMM_WORLD,&status);
-					//MPI_Recv(&pw[j-1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
-					//cout<<raster_n<<" "<<"receive"<<" "<< pw[j-1]<<endl;
+					
 					
 						}
 
 
             ts2=MPI_Wtime();		
-		   tsz=tsz+ts2-ts1;
-		   //cout<<raster_n<<"  "<<ts2-ts1<<"  "<<tsz<<endl;
-	
-						float max_weight=0;
-		               int sample_x = 10;
-					   	for(int i = 0;i<5;i++){
-			            if(pw[i]>max_weight)
-				      {
-					  max_weight = pw[i];
-					  sample_x = i;
-				       }
+            tsz=tsz+ts2-ts1;	
+            float max_weight=0;
+	    int sample_x = 10;
+		 for(int i = 0;i<5;i++){
+	              if(pw[i]>max_weight)
+	                 {
+			   max_weight = pw[i];
+			   sample_x = i;
+			 }
 			         }
-							switch(sample_x)
+				   switch(sample_x)
 			             {
 			  	           case 0:
 				           {
@@ -431,43 +376,30 @@ int main(int nArgc, char *papszArgv[])
 
 		}
 
-					if(cp%4==0){
+			if(cp%4==0){
 
-			//poDBand =poDstDS->GetRasterBand(Bands);
-			//poDBand->RasterIO( GF_Write,  0, y_size, RasterXsize, p_ysize,  pafScanline, RasterXsize, p_ysize, GDT_Float32, 0, 0 );
-			//cout<<p_ysize<<endl;
+			
 			}  
 
 
    }
 
-//***********************×îºóÒ»×éµÄ²Ù×÷
+
   else {
 	          poBand->RasterIO( GF_Read, 0, y_size, RasterXsize, p_lastYsize, pafScanline, RasterXsize, p_lastYsize, GDT_Float32, 0, 0 );
 			  raster_pixles_n =RasterXsize*p_lastYsize;
-			 // int fn=RasterXsize*p_ysize;
-			//  cout<<raster_pixles_n<<endl;
 			  if(np%4==1 && int(cp/4) > (pz-2)){
-     //Ò»¸ö½ø³Ì´®ÐÐ***********************************
-         
-             
-				    for(;raster_n <raster_pixles_n ;raster_n++)
-			{
-				
-		/*pw[0] = Compute_Weight(raster_n,Sample_N[0],point_n[0], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[1] = Compute_Weight(raster_n,Sample_N[1],point_n[1], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[2] = Compute_Weight(raster_n,Sample_N[2],point_n[2], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[3] = Compute_Weight(raster_n,Sample_N[3],point_n[3], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[4] = Compute_Weight(raster_n,Sample_N[4],point_n[4], adfGeoTransform[1],RasterXsize,pafScanline);*/
+			     for(;raster_n <raster_pixles_n ;raster_n++)
+			        {
 				for(int k=0;k<5;k++){
 				pw[k] = Compute_Weight(raster_n,Sample_N[k],point_n[k], adfGeoTransform[1],RasterXsize,pafScanline);
 				
 				}
 
 
-		float max_weight=0;
+		               float max_weight=0;
 		               int sample_x = 10;
-					   	for(int i = 0;i<5;i++){
+			         for(int i = 0;i<5;i++){
 			            if(pw[i]>max_weight)
 				      {
 					  max_weight = pw[i];
@@ -507,27 +439,18 @@ int main(int nArgc, char *papszArgv[])
 			
 		}
 	
-		//	poDBand =poDstDS->GetRasterBand(Bands);
-		//	poDBand->RasterIO( GF_Write, 0, y_size, RasterXsize, p_lastYsize, pafScanline, RasterXsize, p_lastYsize, GDT_Float32, 0, 0);
-			//cout<<raster_pixles_n<<endl;  
-
-			}
-
-			  //**************************************************************8
+		
             if(np%4==2 && int(cp/4) > (pz-2)){
-			
-           //Á½¸ö½ø³Ì²¢ÐÐ
            for(;raster_n <raster_pixles_n;raster_n++)
 			{
 
-					int Nxp= 0,p = 1,px_i = 0, Sxp=0;
+				int Nxp= 0,p = 1,px_i = 0, Sxp=0;
 
 				loop1:
 			 	   px_i = Nxp +cp-4;
 				   if(px_i<=4){
 				   //pixles_weight[px_i].a=px_i;
-				   pixles_weight[px_i]= Compute_Weight(raster_n,Sample_N[px_i],point_n[px_i], adfGeoTransform[1],RasterXsize,pafScanline);
-				// cout<<"send:"<<raster_n<<" "<<pixles_weight[px_i]<<endl;
+				   pixles_weight[px_i]= Compute_Weight(raster_n,Sample_N[px_i],point_n[px_i], adfGeoTransform[1],RasterXsize,pafScanline);	
 				   if(cp!=4){
 				   MPI_Send(&pixles_weight[px_i],1,MPI_FLOAT,4,1,MPI_COMM_WORLD);
 				   }
@@ -547,30 +470,23 @@ int main(int nArgc, char *papszArgv[])
 				        }
 					   
 				   }	
-					//cout<<raster_n<<"send"<<endl;
-			
+					
 
 				MPI_Status status;
-			//MPI_Barrier(MPI_COMM_WORLD); 
-			if (cp==4){
+			
+			        if (cp==4){
 				
-				    tts1=MPI_Wtime();	
+			            tts1=MPI_Wtime();	
 			        
 
-				MPI_Recv(&pixles_weight[1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
-				MPI_Recv(&pixles_weight[3],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
-					
-					//cout<<raster_n<<"receive:"<<j<<endl;
-				
-				     tts2=MPI_Wtime();
-					ttsz=ttsz+tts2-tts1;
-					//cout<<"last"<<raster_n<<"  "<<tts2-tts1<<"  "<<ttsz<<endl;
-
-
-						float max_weight=0;
-		               int sample_x = 10;
-					   	for(int i = 0;i<5;i++){
-			            if(pixles_weight[i]>max_weight)
+				    MPI_Recv(&pixles_weight[1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
+				    MPI_Recv(&pixles_weight[3],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
+				    tts2=MPI_Wtime();
+			            ttsz=ttsz+tts2-tts1;
+				    float max_weight=0;
+		                    int sample_x = 10;
+				    for(int i = 0;i<5;i++){
+			              if(pixles_weight[i]>max_weight)
 				      {
 					  max_weight = pixles_weight[i];
 					  sample_x = i;
@@ -612,12 +528,10 @@ int main(int nArgc, char *papszArgv[])
 		     }
 
 		     if(cp==4){
-		//	poDBand =poDstDS->GetRasterBand(Bands);
-		//	poDBand->RasterIO( GF_Write,0, y_size, RasterXsize, p_lastYsize, pafScanline, RasterXsize, p_lastYsize, GDT_Float32, 0, 0 );
 			}  
 
 			}
-			//****************************3µÄÕûÊý±¶*************************************
+		
 			if(np%4==3 && int(cp/4) > (pz-2)){
 			
 			
@@ -762,25 +676,17 @@ int main(int nArgc, char *papszArgv[])
 
 
 				tts1=MPI_Wtime();    
-				for(int j=1;j<4;j++){
-
-                    //MPI_Recv(&pixles_weight[j-1],1,MPI_FLOAT,cp+j,j,MPI_COMM_WORLD,&status);
-					//int a=int(pixles_weight[j-1]/10)-1;
-				   // pw[a]=pixles_weight[j-1]-(a+1)*10;
+				for(int j=1;j<4;j++){              
 					MPI_Recv(&pw[j],1,MPI_FLOAT,4+j,j,MPI_COMM_WORLD,&status);
-					//MPI_Recv(&pw[j-1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
-					//cout<<raster_n<<" "<<"receive"<<" "<< pw[j-1]<<endl;
-					
-						}
+						    }
 
 
-            tts2=MPI_Wtime();		
-		   ttsz=ttsz+tts2-tts1;
-		   //cout<<raster_n<<"  "<<ts2-ts1<<"  "<<tsz<<endl;
-	
-						float max_weight=0;
-		               int sample_x = 10;
-					   	for(int i = 0;i<5;i++){
+                       tts2=MPI_Wtime();		
+		       ttsz=ttsz+tts2-tts1;
+		   
+		       float max_weight=0;
+		       int sample_x = 10;
+		       for(int i = 0;i<5;i++){
 			            if(pw[i]>max_weight)
 				      {
 					  max_weight = pw[i];
@@ -825,9 +731,7 @@ int main(int nArgc, char *papszArgv[])
 
 					if(cp%4==0){
 
-			//poDBand =poDstDS->GetRasterBand(Bands);
-			//poDBand->RasterIO( GF_Write,  0, y_size, RasterXsize, p_ysize,  pafScanline, RasterXsize, p_ysize, GDT_Float32, 0, 0 );
-			//cout<<p_ysize<<endl;
+			
 			}  
 
 
@@ -837,17 +741,14 @@ int main(int nArgc, char *papszArgv[])
 
 
 			}
-			//*****************************************************************
+			
 		
 
 			}
 			}
 
 		}
-//****************************************************************************************************************************
-		//***********************
-     
-//ÍêÈ«´®ÐÐ
+
 		if (np<=4){		
 
 raster_pixles_n =RasterXsize*p_ysize;
@@ -859,23 +760,19 @@ raster_pixles_n =RasterXsize*p_ysize;
          poBand->RasterIO( GF_Read, 0, y_size, RasterXsize, p_ysize,  pafScanline, RasterXsize, p_ysize, GDT_Float32, 0, 0 );
 			
 			int raster_n=0;
-//****************************1¸ö½ø³Ì***************************************			
+			
 			if(np==1){
 			  for(;raster_n <raster_pixles_n ;raster_n++)
 			{
 				
-		/*pw[0] = Compute_Weight(raster_n,Sample_N[0],point_n[0], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[1] = Compute_Weight(raster_n,Sample_N[1],point_n[1], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[2] = Compute_Weight(raster_n,Sample_N[2],point_n[2], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[3] = Compute_Weight(raster_n,Sample_N[3],point_n[3], adfGeoTransform[1],RasterXsize,pafScanline);
-		pw[4] = Compute_Weight(raster_n,Sample_N[4],point_n[4], adfGeoTransform[1],RasterXsize,pafScanline);*/
+		
 				for(int k=0;k<5;k++){
 				pw[k] = Compute_Weight(raster_n,Sample_N[k],point_n[k], adfGeoTransform[1],RasterXsize,pafScanline);
 				
 				}
 
 
-		float max_weight=0;
+		               float max_weight=0;
 		               int sample_x = 10;
 					   	for(int i = 0;i<5;i++){
 			            if(pw[i]>max_weight)
@@ -919,7 +816,7 @@ raster_pixles_n =RasterXsize*p_ysize;
 	
 			
 			}
-//****************************2¸ö½ø³Ì***************************************	
+	
             if(np==2){
 			          for(;raster_n <raster_pixles_n;raster_n++)
 			{
@@ -929,13 +826,13 @@ raster_pixles_n =RasterXsize*p_ysize;
 				loop41:
 			 	   px_i = Nxp +cp;
 				   if(px_i<=4){
-				   //pixles_weight[px_i].a=px_i;
+				   
 				   pixles_weight[px_i]= Compute_Weight(raster_n,Sample_N[px_i],point_n[px_i], adfGeoTransform[1],RasterXsize,pafScanline);
-				// cout<<"send:"<<raster_n<<" "<<pixles_weight[px_i]<<endl;
+				
 				   if(cp!=0){
 				   MPI_Send(&pixles_weight[px_i],1,MPI_FLOAT,0,1,MPI_COMM_WORLD);
 				   }
-			       //tag2=tag*(np-1);
+			      
 				   Nxp = 5-p*np;
 				            
 				       if(Nxp>=np){
@@ -951,11 +848,11 @@ raster_pixles_n =RasterXsize*p_ysize;
 				        }
 					   
 				   }	
-					//cout<<raster_n<<"send"<<endl;
+					
 			
 
 				MPI_Status status;
-			//MPI_Barrier(MPI_COMM_WORLD); 
+			
 			if (cp==0){
 				
 				    ts1=MPI_Wtime();	
@@ -964,11 +861,11 @@ raster_pixles_n =RasterXsize*p_ysize;
 				MPI_Recv(&pixles_weight[1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
 				MPI_Recv(&pixles_weight[3],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
 					
-					//cout<<raster_n<<"receive:"<<j<<endl;
+					
 				
 				     ts2=MPI_Wtime();
 					tsz=tsz+ts2-ts1;
-					//cout<<"last"<<raster_n<<"  "<<tts2-tts1<<"  "<<ttsz<<endl;
+					
 
 
 						float max_weight=0;
@@ -1016,13 +913,12 @@ raster_pixles_n =RasterXsize*p_ysize;
 		     }
 
 		     if(cp==0){
-		//	poDBand =poDstDS->GetRasterBand(Bands);
-		//	poDBand->RasterIO( GF_Write,0, y_size, RasterXsize, p_lastYsize, pafScanline, RasterXsize, p_lastYsize, GDT_Float32, 0, 0 );
+	
 			} 
 			
 			}
 
-//****************************3¸ö½ø³Ì***************************************	
+	
             if(np==3){
 				for(;raster_n <raster_pixles_n;raster_n++)
 			{
@@ -1122,7 +1018,6 @@ raster_pixles_n =RasterXsize*p_ysize;
 			
 			}	
 
-//****************************4¸ö½ø³Ì***************************************	
             if(np==4){
 
 			
@@ -1162,18 +1057,14 @@ raster_pixles_n =RasterXsize*p_ysize;
 			MPI_Status status;
 			
 			if (cp==0 ){
-				  //  cout<<raster_n<<endl;
-
+				
 
 				ts1=MPI_Wtime();    
 				for(int j=1;j<4;j++){
 
-                    //MPI_Recv(&pixles_weight[j-1],1,MPI_FLOAT,cp+j,j,MPI_COMM_WORLD,&status);
-					//int a=int(pixles_weight[j-1]/10)-1;
-				   // pw[a]=pixles_weight[j-1]-(a+1)*10;
+                    
 					MPI_Recv(&pw[j],1,MPI_FLOAT,j,j,MPI_COMM_WORLD,&status);
-					//MPI_Recv(&pw[j-1],1,MPI_FLOAT,MPI_ANY_SOURCE,1,MPI_COMM_WORLD,&status);
-					//cout<<raster_n<<" "<<"receive"<<" "<< pw[j-1]<<endl;
+					
 					
 						}
 
@@ -1229,9 +1120,7 @@ raster_pixles_n =RasterXsize*p_ysize;
 
 					if(cp==0){
 
-			//poDBand =poDstDS->GetRasterBand(Bands);
-			//poDBand->RasterIO( GF_Write,  0, y_size, RasterXsize, p_ysize,  pafScanline, RasterXsize, p_ysize, GDT_Float32, 0, 0 );
-			//cout<<p_ysize<<endl;
+			
 			}  
 
 
@@ -1254,7 +1143,7 @@ raster_pixles_n =RasterXsize*p_ysize;
 
 }
 		MPI_Barrier(MPI_COMM_WORLD); 
-// }//******************for(bands)µÄÓÒÀ¨ºÅ
+
 
 	
 t2 = MPI_Wtime();
