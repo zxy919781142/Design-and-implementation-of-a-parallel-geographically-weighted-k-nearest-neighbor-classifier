@@ -9,32 +9,28 @@
 
 
 using namespace std;
-float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)//¼ÆËãÁ½ÏñÔªµÄ¿Õ¼ä¾àÀë
+float Compute_Distance(float Raster_x,float Raster_y,float Sample_x,float Sample_y,float resulation)//è®¡ç®—ä¸¤åƒå…ƒçš„ç©ºé—´è·ç¦»
 {
 	return(sqrt((Raster_x-Sample_x)*(Raster_x-Sample_x)+(Raster_y-Sample_y)*(Raster_y-Sample_y))*resulation);
 }
-float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)//¼ÆËãÁ½ÏñÔªµÄ¹âÆ×¾àÀë
+float Compute_SpecDist(float *RastScanline,long Raster_N,long Sample_N)//è®¡ç®—ä¸¤åƒå…ƒçš„å…‰è°±è·ç¦»
 {
 	return(fabs(RastScanline[Raster_N]-RastScanline[Sample_N]));
 }
 
-	/****************/
-	/*¼ÆËãX£¬Y×ø±ê*/
-	/****************/
+	
 void  Cmpute_XY(long Raster_N,long *Raster_X,long *Raster_Y,long X_size)
 {
 	*Raster_X =  Raster_N%X_size;
 	*Raster_Y =  Raster_N/X_size;
 }
-	/****************/
-	/*¸ù¾İÍ¼Ïñ×ø±ê¼ÆËã´æ´¢Î»ÖÃRaster_N*/
-	/****************/
+	
 long Compute_Raster_N(long Raster_X,long Raster_Y,long X_size)
 {
 	return(Raster_X+Raster_Y*X_size);
 }
 
-float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)//¼ÆËãÄ³¸ö´ı·ÖÀàÏñÔª¹éÊôÈ¨ÖØ
+float Compute_Weight(long Raster_N,long *Sample_N,long Sample_n, float resulation,long X_size,float *RastScanline)//è®¡ç®—æŸä¸ªå¾…åˆ†ç±»åƒå…ƒå½’å±æƒé‡
 {
 	float Raster_Weight = 0,Raster_Dis_Weight = 0;
 	long Raster_x,Raster_y,Sample_x,Sample_y;
@@ -114,7 +110,7 @@ float zhishu(float *x,float xdata)
 }
 
 
-float ydata_G(long h,long raster_X,long raster_Y,long *sample_X,long *sample_Y,long *zsample_X,long *zsample_Y,long n_sample,long n_zsample)//Ê¹ÓÃk½üÁÚ·½·¨¼ÆËãÏñÔª¹éÊô¸ÅÂÊÖµ
+float ydata_G(long h,long raster_X,long raster_Y,long *sample_X,long *sample_Y,long *zsample_X,long *zsample_Y,long n_sample,long n_zsample)//ä½¿ç”¨kè¿‘é‚»æ–¹æ³•è®¡ç®—åƒå…ƒå½’å±æ¦‚ç‡å€¼
 {
 	long sampleN = 0,zsampleN=0;
 
@@ -126,7 +122,7 @@ float ydata_G(long h,long raster_X,long raster_Y,long *sample_X,long *sample_Y,l
 		zsampleN++;
 	return((float)sampleN/zsampleN);
 }
-bool compute_ydata(float *ydata,long *xdata,long raster_Xsize,long raster_Ysize,long *raster_X,long *raster_Y,long *sample_x,long *sample_Y,long *zsample_X,long *zsample_Y,long n_sample,long n_zsample)//¼ÆËãÄ³ÀàÑù±¾¹éÊô¸ÅÂÊÖµ,»ñµÃxdata,ydata
+bool compute_ydata(float *ydata,long *xdata,long raster_Xsize,long raster_Ysize,long *raster_X,long *raster_Y,long *sample_x,long *sample_Y,long *zsample_X,long *zsample_Y,long n_sample,long n_zsample)//è®¡ç®—æŸç±»æ ·æœ¬å½’å±æ¦‚ç‡å€¼,è·å¾—xdata,ydata
 {
 	long lh = 0;
 	float data_g=0;
@@ -172,24 +168,14 @@ float resnorm1(long *xdata,float *ydata,long n_sample)
 				zresnorm2 =zresnorm2 + fabs(ydata[n] - gaosi(x,xdata[n]));
 			//	zresnorm3 =zresnorm3 + fabs(ydata[n] - zhishu(x,xdata[n]));
 			}
-	/*		if(zresnorm_min[0]>zresnorm1)
-			{
-				zresnorm_min[0] = zresnorm1;
-				qx1=x[0];
-				qx2=x[1];
-			}*/
+	
 			if(zresnorm_min[1]>zresnorm2)
 			{
 				zresnorm_min[1] = zresnorm2;
 				gx1 = x[0];
 				gx2 = x[1];
 			}
-		/*	if(zresnorm_min[2]>zresnorm3)
-			{
-				zresnorm_min[2] = zresnorm3;
-				zx1 = x[0];
-				zx2 = x[1];
-			}		*/		
+				
 			
 		}
 	}
@@ -212,22 +198,10 @@ float resnorm2(long *xdata,float *ydata,long n_sample)
 			zresnorm1 = 0,zresnorm2 = 0,zresnorm3 = 0;
 			for(int n = 0;n<n_sample;n++)
 			{
-				//zresnorm1 =zresnorm1 + fabs(ydata[n] - qiuxing(x,xdata[n]));
-				//zresnorm2 =zresnorm2 + fabs(ydata[n] - gaosi(x,xdata[n]));
+				
 				zresnorm3 =zresnorm3 + fabs(ydata[n] - zhishu(x,xdata[n]));
 			}
-			/*if(zresnorm_min[0]>zresnorm1)
-			{
-				zresnorm_min[0] = zresnorm1;
-				qx1=x[0];
-				qx2=x[1];
-			}
-			if(zresnorm_min[1]>zresnorm2)
-			{
-				zresnorm_min[1] = zresnorm2;
-				gx1 = x[0];
-				gx2 = x[1];
-			}*/
+			
 			if(zresnorm_min[2]>zresnorm3)
 			{
 				zresnorm_min[2] = zresnorm3;
@@ -249,19 +223,16 @@ int main(int nArgc, char *papszArgv[])
 	int N_sample = 5;
 	
 	int cp, np;
-	MPI_Init(&nArgc, &papszArgv);//²¢ĞĞ³õÊ¼»¯
-	MPI_Comm_rank(MPI_COMM_WORLD, &cp);//»ñÈ¡½ø³Ì±àºÅ
-	MPI_Comm_size(MPI_COMM_WORLD, &np);//»ñÈ¡½ø³ÌÊıÁ¿
+	MPI_Init(&nArgc, &papszArgv);//å¹¶è¡Œåˆå§‹åŒ–
+	MPI_Comm_rank(MPI_COMM_WORLD, &cp);//è·å–è¿›ç¨‹ç¼–å·
+	MPI_Comm_size(MPI_COMM_WORLD, &np);//è·å–è¿›ç¨‹æ•°é‡
 	
 	
 
 
 	const char *pszFilenameX[] = {"C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\bareland.txt","C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\fieldland.txt","C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\grassland.txt" , 
 		"C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\roadland.txt", "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\waterland.txt"};
-	/*const char *pszFilename2 = "F:\\data\\remote_data\\sample\\fieldland.txt" ;
-	const char *pszFilename3 = "F:\\data\\remote_data\\sample\\grassland.txt" ;
-	const char *pszFilename4 = "F:\\data\\remote_data\\sample\\roadland.txt" ;
-	const char *pszFilename5 = "F:\\data\\remote_data\\sample\\waterland.txt" ;*/
+	
 
 	const char *zpszFilename = "C:\\Users\\Administrator\\Desktop\\Gwk-NN_Program\\remote_data\\sample\\ztestsample.txt" ;
 	long raster_x[5][300],raster_y[5][500],Sample_N[5][500],zraster_x[500],zraster_y[500],ZSample_N[500];
@@ -269,9 +240,7 @@ int main(int nArgc, char *papszArgv[])
 
 
 	
-	 /****************/
-	/*´ò¿ªÕ¤¸ñÊı¾İÔ´*/
-	/****************/
+	
     poDataset = (GDALDataset *) GDALOpen( pszFilename, GA_ReadOnly );
     if( poDataset == NULL )
     {
@@ -279,37 +248,28 @@ int main(int nArgc, char *papszArgv[])
 		MPI_Finalize();
 		return 0;
     }
-	/*********************/
-	/*»ñÈ¡Õ¤¸ñÊı¾İÔ´ĞÅÏ¢*/
-	/********************/
+	
 	double        adfGeoTransform[6];
 
-	const char *Driver_Name = poDataset->GetDriver()->GetDescription();//»ñÈ¡Ô´Êı¾İdriver name
-	long RasterXsize =  poDataset->GetRasterXSize();//»ñÈ¡Í¼ÏñºáÏòÏñËØÊı
-	long RasterYsize =  poDataset->GetRasterYSize();//»ñÈ¡Í¼Ïñ×İÏòÏñËØÊı
-	long RasterCount =  poDataset->GetRasterCount();//»ñÈ¡Í¼Ïñ²ãÊı
+	const char *Driver_Name = poDataset->GetDriver()->GetDescription();
+	long RasterXsize =  poDataset->GetRasterXSize();
+	long RasterYsize =  poDataset->GetRasterYSize();
+	long RasterCount =  poDataset->GetRasterCount();
 
 	OGRSpatialReference oSRS;
-	if( poDataset->GetProjectionRef()  != NULL )//»ñÈ¡Í¶Ó°ĞÅÏ¢
+	if( poDataset->GetProjectionRef()  != NULL )//è·å–æŠ•å½±ä¿¡æ¯
 	{
 		oSRS = poDataset->GetProjectionRef();
 	}
 	float Origin_x,Origin_y;
 
-	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )//»ñÈ¡Í¼ÏñÆğÊ¼µã£¨×óÉÏ½Çµã£©×ø±ê£¬¼°·Ö±æÂÊ
+	if( poDataset->GetGeoTransform( adfGeoTransform ) == CE_None )
     {
         
         Origin_x = adfGeoTransform[0];
 		Origin_y = adfGeoTransform[3] ;        
     }
-	/*
-	adfGeoTransform[0] ×óÉÏ½ÇX×ø±ê
-    adfGeoTransform[1] ¶«Î÷·½ÏòÏñÔª·Ö±æÂÊ
-    adfGeoTransform[2] Ğı×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕı±±·½Ïò
-    adfGeoTransform[3] ×óÉÏ½ÇY×ø±ê
-    adfGeoTransform[4] Ğı×ª½Ç¶È£¬Èç¹ûÊÇ0ÔòÍ¼ÏñÉÏÎªÕı±±·½Ïò
-    adfGeoTransform[5] ÄÏ±±·½ÏòÏñÔª·Ö±æÂÊ
-	*/
+	
 	int point_n = 0;
 	int zsample_point_n = fopen_txt_n(zpszFilename,zraster_x,zraster_y,ZSample_N,RasterXsize);
 	float ydata[500];long xdata[500];
@@ -327,21 +287,21 @@ int main(int nArgc, char *papszArgv[])
 	
 		px_i = i;
 		
-		point_n = fopen_txt_n(pszFilenameX[px_i],raster_x[px_i],raster_y[px_i],Sample_N[px_i],RasterXsize);//»ñÈ¡Ñù±¾Êı¾İ×ø±êµã¼°Ñù±¾Êı¾İ×ø±êµã¸öÊı
+		point_n = fopen_txt_n(pszFilenameX[px_i],raster_x[px_i],raster_y[px_i],Sample_N[px_i],RasterXsize);//è·å–æ ·æœ¬æ•°æ®åæ ‡ç‚¹åŠæ ·æœ¬æ•°æ®åæ ‡ç‚¹ä¸ªæ•°
 		
 		if(point_n == 0)
 		{
-			printf("»ñÈ¡Ñù±¾Êı¾İÊ§°Ü!\n");
+			printf("è·å–æ ·æœ¬æ•°æ®å¤±è´¥!\n");
 			MPI_Finalize();
 			return 0;
 		}
 		
 
 
-		compute_ydata(ydata,xdata,RasterXsize,RasterYsize,raster_x[px_i],raster_y[px_i],raster_x[px_i],raster_y[px_i],zraster_x,zraster_y,point_n,zsample_point_n);//ÑµÁ·Ñù±¾µãËæ»ú¸ÅÂÊ¼ÆËã
+		compute_ydata(ydata,xdata,RasterXsize,RasterYsize,raster_x[px_i],raster_y[px_i],raster_x[px_i],raster_y[px_i],zraster_x,zraster_y,point_n,zsample_point_n);//è®­ç»ƒæ ·æœ¬ç‚¹éšæœºæ¦‚ç‡è®¡ç®—
 		if(!compute_ydata)
 		{
-			printf("¼ÆËãÑù±¾µãËæ»ú¸ÅÂÊÊ§°Ü!\n");
+			printf("è®¡ç®—æ ·æœ¬ç‚¹éšæœºæ¦‚ç‡å¤±è´¥!\n");
 			MPI_Finalize();
 			return 0;
 		}
@@ -351,49 +311,20 @@ int main(int nArgc, char *papszArgv[])
 			zresorm1 = resnorm1(xdata,ydata, point_n);
 			zresorm2 = resnorm2(xdata,ydata, point_n);
 			if(zresorm1>zresorm2)
-				printf("Ñ¡È¡¸ßË¹Ä£ĞÍ\n");
+				printf("é€‰å–é«˜æ–¯æ¨¡å‹\n");
 			else
-				printf("Ñ¡È¡Ö¸ÊıÄ£ĞÍ\n");
+				printf("é€‰å–æŒ‡æ•°æ¨¡å‹\n");
 
 		}
-		/*else if(np==2)
-		{		
-			float messge =0;
-			if(cp==0)
-				zresorm1 = resnorm1(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-			if(cp==1)
-			{
-				zresorm2 = resnorm2(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-				messge = zresorm2;
-			}
-			MPI_Barrier(MPI_COMM_WORLD);	
-			
-			MPI_Status status;			
-			int tag= 1;				 
-			
-			if(cp==1)
-				MPI_Send(&messge,1,MPI_FLOAT,0,tag,MPI_COMM_WORLD);//ÏòÖ÷½ø³Ì·¢ËÍÏûÏ¢
-			if(cp==0)
-			{
-				MPI_Recv(&messge,1,MPI_FLOAT,1,tag,MPI_COMM_WORLD,&status);//½ÓÊÕ´Ó½ø³Ì·¢ËÍÀ´µÄÏûÏ¢
-				if(messge<zresorm1)
-					printf("Ñ¡È¡¸ßË¹Ä£ĞÍ\n");
-				else
-					printf("Ñ¡È¡Ö¸ÊıÄ£ĞÍ\n");
-			}
-					
 		
-
-		}*/
-		else if(np==2)
 		{		
 				
 			if(cp==1)
 			{
-				zresorm1 = resnorm1(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-				zresorm2 = resnorm2(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-				MPI_Send(&zresorm1,1,MPI_FLOAT,0,1,MPI_COMM_WORLD);//ÏòÖ÷½ø³Ì·¢ËÍÏûÏ¢
-				MPI_Send(&zresorm2,1,MPI_FLOAT,0,2,MPI_COMM_WORLD);//ÏòÖ÷½ø³Ì·¢ËÍÏûÏ¢
+				zresorm1 = resnorm1(xdata,ydata, point_n);
+				zresorm2 = resnorm2(xdata,ydata, point_n);
+				MPI_Send(&zresorm1,1,MPI_FLOAT,0,1,MPI_COMM_WORLD);
+				MPI_Send(&zresorm2,1,MPI_FLOAT,0,2,MPI_COMM_WORLD);
 			}
 			//MPI_Barrier(MPI_COMM_WORLD);	
 			
@@ -402,14 +333,14 @@ int main(int nArgc, char *papszArgv[])
 			if(cp==0)
 			{
 				ts1=MPI_Wtime();
-				MPI_Recv(&zresorm1,1,MPI_FLOAT,1,1,MPI_COMM_WORLD,&status);//½ÓÊÕ´Ó½ø³Ì·¢ËÍÀ´µÄÏûÏ¢
-				MPI_Recv(&zresorm2,1,MPI_FLOAT,1,2,MPI_COMM_WORLD,&status);//½ÓÊÕ´Ó½ø³Ì·¢ËÍÀ´µÄÏûÏ¢
+				MPI_Recv(&zresorm1,1,MPI_FLOAT,1,1,MPI_COMM_WORLD,&status);
+				MPI_Recv(&zresorm2,1,MPI_FLOAT,1,2,MPI_COMM_WORLD,&status);
 				ts2=MPI_Wtime();
 				tsz=tsz+ts2-ts1;
 				if(zresorm2<zresorm1)
-					printf("Ñ¡È¡¸ßË¹Ä£ĞÍ\n");
+					printf("é€‰å–é«˜æ–¯æ¨¡å‹\n");
 				else
-					printf("Ñ¡È¡Ö¸ÊıÄ£ĞÍ\n");
+					printf("é€‰å–æŒ‡æ•°æ¨¡å‹\n");
 			}
 					
 		
@@ -420,14 +351,14 @@ int main(int nArgc, char *papszArgv[])
 			int tag= 1;	
 			if(cp==1)
 			{
-				zresorm1 = resnorm1(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-				MPI_Send(&zresorm1,1,MPI_FLOAT,0,tag,MPI_COMM_WORLD);//ÏòÖ÷½ø³Ì·¢ËÍÏûÏ¢
+				zresorm1 = resnorm1(xdata,ydata, point_n);//æ¨¡å‹æ‹Ÿåˆ
+				MPI_Send(&zresorm1,1,MPI_FLOAT,0,tag,MPI_COMM_WORLD);//å‘ä¸»è¿›ç¨‹å‘é€æ¶ˆæ¯
 			}
 
 			if(cp==2)
 			{
-				zresorm2 = resnorm2(xdata,ydata, point_n);//Ä£ĞÍÄâºÏ
-				MPI_Send(&zresorm2,1,MPI_FLOAT,0,tag,MPI_COMM_WORLD);//ÏòÖ÷½ø³Ì·¢ËÍÏûÏ¢
+				zresorm2 = resnorm2(xdata,ydata, point_n);//æ¨¡å‹æ‹Ÿåˆ
+				MPI_Send(&zresorm2,1,MPI_FLOAT,0,tag,MPI_COMM_WORLD);//å‘ä¸»è¿›ç¨‹å‘é€æ¶ˆæ¯
 			}
 			//MPI_Barrier(MPI_COMM_WORLD);	
 			
@@ -440,14 +371,14 @@ int main(int nArgc, char *papszArgv[])
 				float messge1;
 				float messge2;
 				ts1=MPI_Wtime();
-				MPI_Recv(&messge1,1,MPI_FLOAT,1,tag,MPI_COMM_WORLD,&status);//½ÓÊÕ´Ó½ø³Ì·¢ËÍÀ´µÄÏûÏ¢
-				MPI_Recv(&messge2,1,MPI_FLOAT,2,tag,MPI_COMM_WORLD,&status);//½ÓÊÕ´Ó½ø³Ì·¢ËÍÀ´µÄÏûÏ¢
+				MPI_Recv(&messge1,1,MPI_FLOAT,1,tag,MPI_COMM_WORLD,&status);//æ¥æ”¶ä»è¿›ç¨‹å‘é€æ¥çš„æ¶ˆæ¯
+				MPI_Recv(&messge2,1,MPI_FLOAT,2,tag,MPI_COMM_WORLD,&status);//æ¥æ”¶ä»è¿›ç¨‹å‘é€æ¥çš„æ¶ˆæ¯
 				ts2=MPI_Wtime();
 				tsz=tsz+ts2-ts1;
 				if(messge1>messge2)
-					printf("Ñ¡È¡¸ßË¹Ä£ĞÍ\n");
+					printf("é€‰å–é«˜æ–¯æ¨¡å‹\n");
 				else
-					printf("Ñ¡È¡Ö¸ÊıÄ£ĞÍ\n");
+					printf("é€‰å–æŒ‡æ•°æ¨¡å‹\n");
 			}
 		}
 		
